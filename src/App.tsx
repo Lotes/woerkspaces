@@ -1,53 +1,103 @@
-import * as React, {useState, useEffect} from "react";
+import * as React from "react";
 import "./styles.css";
 import CANNON from "cannon";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface Size {
   innerWidth: number;
   innerHeight: number;
 }
 
-function useWorkspaces(initialSize: Size): [Size] {
-  const  [size, setSize] = useState(()=>initialSize);
+interface Woerkspace {
+  cx: number;
+  cy: number;
+  width: number;
+  height: number;
+  angle: number;
+  color: string;
+}
+
+type AddAction = (woerkspace: Woerkspace) => void;
+
+function useWoerkspaces(initialSize: Size): [Size] {
+  const [size, setSize] = useState(() => initialSize);
+  const [spaces, setSpaces] = useState<Woerkspace[]>(() => []);
+  const add = useRef<AddAction>(null);
 
   useEffect(() => {
-
-  });
-
-  return [size];
-} //https://github.com/schteppe/cannon.js
-
-export default function App() {
-  const [world] = React.useState(() => {
-    const w = new CANNON.World();
-    w.gravity.set(0, 0, -9.81);
-    return w;
-  });
-  const [transform] = React.useState(() => [
-    new CANNON.Body({
-      mass: 1,
-      position: new CANNON.Vec3(100, 100, 0),
-      shape: new CANNON.Box(new CANNON.Vec3(30, 30, 30))
-    })
-  ]);
-  const [size, setSize] = React.useState({
-    width: window.innerWidth,
-    height: window.innerHeight
-  });
-  React.useEffect(() => {
     function listener() {
-      setSize({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
+      setSize(window);
     }
     window.addEventListener("resize", listener);
+
+    const bodies = new Map<CANNON.Body, Woerkspace>();
+    const world = new CANNON.World();
+    world.gravity.set(0, 0, -9.82);
+
+    var groundBody = new CANNON.Body({
+      mass: 0
+    });
+    var groundShape = new CANNON.Plane();
+    groundBody.addShape(groundShape);
+    world.addBody(groundBody);
+
+    add.current = woerkspace => {
+      var boxBody = new CANNON.Body({
+        mass: 5,
+        position: new CANNON.Vec3(0, 0, 10),
+        shape: new CANNON.Box(woerkspace.width, woerkspace.height, 0.1)
+      });
+      world.addBody(boxBody);
+      bodies.push(boxBody);
+    };
+
+    const fixedTimeStep = 1.0 / 60.0;
+    const maxSubSteps = 3;
+
+    let lastTime: number;
+    (function simloop(time: number){
+      requestAnimationFrame(simloop);
+      if(lastTime !== undefined) {
+        var dt = (time - lastTime) / 1000;
+        world.step(fixedTimeStep, dt, maxSubSteps);
+      } 
+      lastTime = time;
+    })();
+
     return () => window.removeEventListener("resize", listener);
   });
+  
+  return [size, spaces, add.current ];
+}
+
+export default function App() {
+  const [size, spaces, add] = useWoerkspaces(window);
+  
+  useEffect(() => {
+    add({
+      cx: 100,
+      cy: 100,
+      width: 60,
+      height: 40,
+      angle: 0,
+      color: "red"
+    })
+  });
+
   return (
     <svg className="App" width={size.width} height={size.height}>
-      <rect width={size.width} height={size.height} fill="blue" />
+      <rect width={size.innerWidth} height={size.innerHeight} fill="blue" />
+      {spaces.map(s => {
+        return (
+          <g transform={ˋtranslate(${s.cx - s.width/2} ${s.cy - s.height/2}) rotate(${s.angle})ˋ}>
+            <rect
+              width={s.width}
+              height={s.height}
+              fill={s.color}
+            />
+          </g>
+        );
+      })}
     </svg>
   );
 }
