@@ -1,7 +1,7 @@
 import * as React from "react";
 import "./styles.css";
 import CANNON from "cannon";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface Size {
   innerWidth: number;
@@ -19,14 +19,17 @@ interface Woerkspace {
 
 type AddAction = (woerkspace: Woerkspace) => void;
 
-function useWoerkspaces(initialSize: Size): [Size] {
+function useWoerkspaces(initialSize: Size): [Size, Woerkspace[], AddAction] {
   const [size, setSize] = useState(() => initialSize);
   const [spaces, setSpaces] = useState<Woerkspace[]>(() => []);
-  const add = useRef<AddAction>(null);
+  const add = useRef<AddAction>();
 
   useEffect(() => {
     function listener() {
-      setSize(window);
+      setSize({
+        innerHeight: document.body.innerHeight,
+        innerWidth: document.body.innerWidth
+      });
     }
     window.addEventListener("resize", listener);
 
@@ -41,60 +44,78 @@ function useWoerkspaces(initialSize: Size): [Size] {
     groundBody.addShape(groundShape);
     world.addBody(groundBody);
 
-    add.current = woerkspace => {
-      var boxBody = new CANNON.Body({
+    add.current = (woerkspace: Woerkspace) => {
+      const position = new CANNON.Vec3(woerkspace.cx, woerkspace.cy, 10);
+      const shape = new CANNON.Box(
+        new CANNON.Vec3(woerkspace.width / 2, woerkspace.height / 2, 0.1)
+      );
+      const boxBody = new CANNON.Body({
         mass: 5,
-        position: new CANNON.Vec3(0, 0, 10),
-        shape: new CANNON.Box(woerkspace.width, woerkspace.height, 0.1)
+        position,
+        shape
       });
       world.addBody(boxBody);
-      bodies.push(boxBody);
+      bodies.set(boxBody, woerkspace);
     };
 
     const fixedTimeStep = 1.0 / 60.0;
     const maxSubSteps = 3;
 
-    let lastTime: number;
-    (function simloop(time: number){
-      requestAnimationFrame(simloop);
-      if(lastTime !== undefined) {
+    let lastTime: number | undefined;
+    (function simloop() {
+      const time = new Date().getTime();
+      // requestAnimationFrame(simloop);
+      if (lastTime !== undefined) {
         var dt = (time - lastTime) / 1000;
         world.step(fixedTimeStep, dt, maxSubSteps);
-      } 
+      }
+
+      const result: Woerkspace[] = [];
+      bodies.forEach((value, key) => {
+        let element = {
+          ...value,
+          cx: key.position.x,
+          cy: key.position.y,
+          angle: Math.acos(key.quaternion.w)
+        };
+        result.push(element);
+      });
+      //setSpaces(result);
+
       lastTime = time;
     })();
 
     return () => window.removeEventListener("resize", listener);
   });
-  
-  return [size, spaces, add.current ];
+
+  return [size, spaces, add.current as AddAction];
 }
 
 export default function App() {
   const [size, spaces, add] = useWoerkspaces(window);
-  
+
   useEffect(() => {
-    add({
-      cx: 100,
-      cy: 100,
-      width: 60,
-      height: 40,
-      angle: 0,
-      color: "red"
-    })
+    add &&
+      add({
+        cx: 100,
+        cy: 100,
+        width: 60,
+        height: 40,
+        angle: 0,
+        color: "red"
+      });
   });
 
   return (
-    <svg className="App" width={size.width} height={size.height}>
+    <svg className="App" width={size.innerWidth} height={size.innerHeight}>
       <rect width={size.innerWidth} height={size.innerHeight} fill="blue" />
-      {spaces.map(s => {
+      {spaces.map((s) => {
+        const transform = `translate(${s.cx - s.width / 2} ${
+          s.cy - s.height / 2
+        }) rotate(${s.angle})`;
         return (
-          <g transform={ˋtranslate(${s.cx - s.width/2} ${s.cy - s.height/2}) rotate(${s.angle})ˋ}>
-            <rect
-              width={s.width}
-              height={s.height}
-              fill={s.color}
-            />
+          <g transform={transform}>
+            <rect width={s.width} height={s.height} fill={s.color} />
           </g>
         );
       })}
