@@ -9,6 +9,7 @@ interface Size {
 }
 
 interface Woerkspace {
+  id?: number;
   cx: number;
   cy: number;
   width: number;
@@ -35,6 +36,7 @@ function useWoerkspaces(
     }
     window.addEventListener("resize", listener);
 
+    let id = 0;
     const bodies = new Map<CANNON.Body, Woerkspace>();
     const world = new CANNON.World();
     world.gravity.set(0, 0, -9.82);
@@ -57,7 +59,8 @@ function useWoerkspaces(
         shape
       });
       world.addBody(boxBody);
-      bodies.set(boxBody, woerkspace);
+      bodies.set(boxBody, { ...woerkspace, id });
+      id++;
     };
 
     const fixedTimeStep = 1.0 / 60.0;
@@ -116,7 +119,7 @@ export default function App() {
           s.cy - s.height / 2
         }) rotate(${s.angle})`;
         return (
-          <g transform={transform}>
+          <g key={s.id} transform={transform}>
             <rect width={s.width} height={s.height} fill={s.color} />
           </g>
         );
