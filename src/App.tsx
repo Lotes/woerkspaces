@@ -1,7 +1,7 @@
 import * as React from "react";
 import "./styles.css";
 import CANNON from "cannon";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, MutableRefObject } from "react";
 
 interface Size {
   innerWidth: number;
@@ -19,7 +19,9 @@ interface Woerkspace {
 
 type AddAction = (woerkspace: Woerkspace) => void;
 
-function useWoerkspaces(initialSize: Size): [Size, Woerkspace[], AddAction] {
+function useWoerkspaces(
+  initialSize: Size
+): [Size, Woerkspace[], MutableRefObject<AddAction>] {
   const [size, setSize] = useState(() => initialSize);
   const [spaces, setSpaces] = useState<Woerkspace[]>(() => []);
   const add = useRef<AddAction>();
@@ -64,9 +66,10 @@ function useWoerkspaces(initialSize: Size): [Size, Woerkspace[], AddAction] {
     let lastTime: number | undefined;
     (function simloop() {
       const time = new Date().getTime();
-      // requestAnimationFrame(simloop);
+      requestAnimationFrame(simloop);
       if (lastTime !== undefined) {
         var dt = (time - lastTime) / 1000;
+
         world.step(fixedTimeStep, dt, maxSubSteps);
       }
 
@@ -76,34 +79,33 @@ function useWoerkspaces(initialSize: Size): [Size, Woerkspace[], AddAction] {
           ...value,
           cx: key.position.x,
           cy: key.position.y,
-          angle: Math.acos(key.quaternion.w)
+          angle: Math.acos(key.quaternion.w) * 2
         };
         result.push(element);
       });
-      //setSpaces(result);
+      setSpaces(result);
 
       lastTime = time;
     })();
 
     return () => window.removeEventListener("resize", listener);
-  });
+  }, []);
 
-  return [size, spaces, add.current as AddAction];
+  return [size, spaces, add];
 }
 
 export default function App() {
   const [size, spaces, add] = useWoerkspaces(window);
 
   useEffect(() => {
-    add &&
-      add({
-        cx: 100,
-        cy: 100,
-        width: 60,
-        height: 40,
-        angle: 0,
-        color: "red"
-      });
+    add.current({
+      cx: 100,
+      cy: 100,
+      width: 60,
+      height: 40,
+      angle: 0,
+      color: "red"
+    });
   });
 
   return (
