@@ -1,12 +1,8 @@
 import * as React from "react";
 import "./styles.css";
+import { useSize, Size } from "./useSize";
 import CANNON from "cannon";
 import { useState, useEffect, useRef, MutableRefObject } from "react";
-
-interface Size {
-  innerWidth: number;
-  innerHeight: number;
-}
 
 interface Woerkspace {
   id?: number;
@@ -21,21 +17,12 @@ interface Woerkspace {
 type AddAction = (woerkspace: Woerkspace) => void;
 
 function useWoerkspaces(
-  initialSize: Size
-): [Size, Woerkspace[], MutableRefObject<AddAction>] {
-  const [size, setSize] = useState(() => initialSize);
+  size: Size
+): [Woerkspace[], MutableRefObject<AddAction>] {
   const [spaces, setSpaces] = useState<Woerkspace[]>(() => []);
   const add = useRef<AddAction>();
 
   useEffect(() => {
-    function listener() {
-      setSize({
-        innerHeight: document.body.innerHeight,
-        innerWidth: document.body.innerWidth
-      });
-    }
-    window.addEventListener("resize", listener);
-
     let id = 0;
     const bodies = new Map<CANNON.Body, Woerkspace>();
     const world = new CANNON.World();
@@ -90,15 +77,17 @@ function useWoerkspaces(
 
       lastTime = time;
     })();
-
-    return () => window.removeEventListener("resize", listener);
   }, []);
 
-  return [size, spaces, add];
+  return [spaces, add];
 }
 
 export default function App() {
-  const [size, spaces, add] = useWoerkspaces(window);
+  const size = useSize({
+    innerWidth: document.body.clientWidth,
+    innerHeight: document.body.clientHeight
+  });
+  const [spaces, add] = useWoerkspaces(size);
 
   useEffect(() => {
     add.current({
