@@ -1,6 +1,7 @@
 import * as React from "react";
 import "./styles.css";
 import { useSize } from "./useSize";
+import { Stage } from "./Stage";
 
 export default function App() {
   const size = useSize(() => ({
@@ -9,8 +10,8 @@ export default function App() {
   }));
 
   return (
-    <svg className="App" width={size.width} height={size.height}>
+    <Stage width={size.width} height={size.height}>
       <rect width={size.width} height={size.height} fill="blue" />
-    </svg>
+    </Stage>
   );
 }
