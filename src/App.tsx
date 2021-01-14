@@ -98,7 +98,7 @@ export default function App() {
       angle: 0,
       color: "red"
     });
-  });
+  }, [add]);
 
   return (
     <svg className="App" width={size.innerWidth} height={size.innerHeight}>
