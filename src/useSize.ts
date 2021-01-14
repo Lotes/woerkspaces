@@ -1,24 +1,23 @@
 import { useState, useEffect } from "react";
 
 export interface Size {
-  innerWidth: number;
-  innerHeight: number;
+  width: number;
+  height: number;
 }
 
-export function useSize(initialSize: Size) {
-  const [size, setSize] = useState(() => initialSize);
+export type SizeGetter = () => Size;
+
+export function useSize(getSize: SizeGetter) {
+  const [size, setSize] = useState(getSize);
 
   useEffect(() => {
     function listener() {
-      setSize({
-        innerHeight: document.body.clientHeight,
-        innerWidth: document.body.clientWidth
-      });
+      setSize(getSize());
     }
     window.addEventListener("resize", listener);
 
     return () => window.removeEventListener("resize", listener);
-  }, []);
+  });
 
   return size;
 }

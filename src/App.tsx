@@ -1,18 +1,16 @@
 import * as React from "react";
 import "./styles.css";
-import { useSize, Size } from "./useSize";
-
-import { useState, useEffect, useRef, MutableRefObject } from "react";
+import { useSize } from "./useSize";
 
 export default function App() {
-  const size = useSize({
-    innerWidth: document.body.clientWidth,
-    innerHeight: document.body.clientHeight
-  });
+  const size = useSize(() => ({
+    width: document.body.clientWidth,
+    height: document.body.clientHeight
+  }));
 
   return (
-    <svg className="App" width={size.innerWidth} height={size.innerHeight}>
-      <rect width={size.innerWidth} height={size.innerHeight} fill="blue" />
+    <svg className="App" width={size.width} height={size.height}>
+      <rect width={size.width} height={size.height} fill="blue" />
     </svg>
   );
 }
