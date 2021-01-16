@@ -1,5 +1,8 @@
+import { Bodies, Composite, Svg, Body } from "matter-js";
 import * as React from "react";
 import { FC, useEffect, useState } from "react";
+import { useComposite } from "./Body";
+import { useRenderLoop } from "./Stage";
 
 export interface XProps {
   x: number;
@@ -134,15 +137,38 @@ export interface PathProps {
   strokeWidth?: string;
 }
 
+export interface Transform {
+  x: number;
+  y: number;
+  angle: number;
+}
+
+export interface PathState {
+  body: Body;
+  data: string;
+  origin: Transform;
+}
+
 export const Path: FC<PathProps> = ({
   children,
   fill = "transparent",
   stroke = "black",
   strokeWidth = "1px"
 }) => {
-  const [data, setData] = useState(() => "");
+  const [state, setState] = useState<PathState>();
+  const composite = useComposite();
+  const renderLoop = useRenderLoop();
+  const [transform, setTransform] = useState<Transform>(() => ({
+    x: 0,
+    y: 0,
+    angle: 0
+  }));
 
   useEffect(() => {
+    if (!state) {
+      return;
+    }
+
     let d: string[] = [];
     React.Children.forEach(children, (child) => {
       const { type, props } = (child as unknown) as Component;
@@ -269,10 +295,62 @@ export const Path: FC<PathProps> = ({
         }
       }
     });
-    setData(d.join(" "));
-  }, [children]);
+    const joined = d.join(" ");
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", joined);
 
+    Composite.remove(composite, state.body);
+    const body = Bodies.fromVertices(0, 0, [Svg.pathToVertices(path, 15)]);
+    setState({
+      data: joined,
+      origin: {
+        ...body.position,
+        angle: body.angle
+      },
+      body
+    });
+    Composite.add(composite, body);
+  }, [state, children, composite]);
+
+  useEffect(() => {
+    function render() {
+      if (state)
+        setTransform({
+          ...state.body.position,
+          angle: state.body.angle
+        });
+    }
+    renderLoop.addListener(render);
+    setState({
+      data: "z",
+      body: Body.create({}),
+      origin: {
+        x: 0,
+        y: 0,
+        angle: 0
+      }
+    });
+
+    return () => {
+      renderLoop.removeListener(render);
+    };
+  }, [renderLoop, state]);
+
+  if (!state) {
+    return <></>;
+  }
+
+  const x = transform.x - state.origin.x;
+  const y = transform.y - state.origin.y;
+  const angle = transform.angle - state.origin.angle;
   return (
-    <path d={data} strokeWidth={strokeWidth} stroke={stroke} fill={fill} />
+    <g transform={"translate(" + x + " " + y + ") rotate(" + angle + ")"}>
+      <path
+        d={state.data}
+        strokeWidth={strokeWidth}
+        stroke={stroke}
+        fill={fill}
+      />
+    </g>
   );
 };
