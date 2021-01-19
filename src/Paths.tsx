@@ -1,6 +1,7 @@
+import "pathseg";
 import { Bodies, Composite, Svg, Body } from "matter-js";
 import * as React from "react";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useCallback, useRef } from "react";
 import { useComposite } from "./Body";
 import { useRenderLoop } from "./Stage";
 
@@ -144,9 +145,9 @@ export interface Transform {
 }
 
 export interface PathState {
-  body: Body;
   data: string;
   origin: Transform;
+  ready: boolean;
 }
 
 export const Path: FC<PathProps> = ({
@@ -155,20 +156,36 @@ export const Path: FC<PathProps> = ({
   stroke = "black",
   strokeWidth = "1px"
 }) => {
-  const [state, setState] = useState<PathState>();
   const composite = useComposite();
+  const bodyRef = useRef<Body>();
+  const [state, setState] = useState<PathState>(() => {
+    return {
+      data: "z",
+      origin: {
+        x: 0,
+        y: 0,
+        angle: 0
+      },
+      ready: false
+    };
+  });
   const renderLoop = useRenderLoop();
   const [transform, setTransform] = useState<Transform>(() => ({
     x: 0,
     y: 0,
     angle: 0
   }));
+  const render = useCallback(() => {
+    return (
+      bodyRef.current &&
+      setTransform({
+        ...bodyRef.current.position,
+        angle: bodyRef.current.angle
+      })
+    );
+  }, [bodyRef]);
 
   useEffect(() => {
-    if (!state) {
-      return;
-    }
-
     let d: string[] = [];
     React.Children.forEach(children, (child) => {
       const { type, props } = (child as unknown) as Component;
@@ -299,47 +316,51 @@ export const Path: FC<PathProps> = ({
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", joined);
 
-    Composite.remove(composite, state.body);
-    const body = Bodies.fromVertices(0, 0, [Svg.pathToVertices(path, 15)]);
+    let transform: Transform = {
+      x: 0,
+      y: 0,
+      angle: 0
+    };
+    if (bodyRef.current) {
+      transform = {
+        x: bodyRef.current.position.x,
+        y: bodyRef.current.position.y,
+        angle: bodyRef.current.angle
+      };
+      Composite.remove(composite, bodyRef.current);
+    }
+    const vertices = Svg.pathToVertices(path, 15);
+    const body = Bodies.fromVertices(0, 0, [vertices], {
+      mass: 1,
+      position: {
+        x: transform.x,
+        y: transform.y
+      },
+      angle: transform.angle
+    });
+    Composite.add(composite, body);
+    bodyRef.current = body;
     setState({
       data: joined,
       origin: {
         ...body.position,
         angle: body.angle
       },
-      body
+      ready: true
     });
-    Composite.add(composite, body);
-  }, [state, children, composite]);
+  }, [children, bodyRef, composite]);
 
   useEffect(() => {
-    function render() {
-      if (state)
-        setTransform({
-          ...state.body.position,
-          angle: state.body.angle
-        });
-    }
     renderLoop.addListener(render);
-    setState({
-      data: "z",
-      body: Body.create({}),
-      origin: {
-        x: 0,
-        y: 0,
-        angle: 0
-      }
-    });
 
     return () => {
       renderLoop.removeListener(render);
     };
-  }, [renderLoop, state]);
+  }, [renderLoop, render]);
 
-  if (!state) {
-    return <></>;
+  if (!state.ready) {
+    return null;
   }
-
   const x = transform.x - state.origin.x;
   const y = transform.y - state.origin.y;
   const angle = transform.angle - state.origin.angle;

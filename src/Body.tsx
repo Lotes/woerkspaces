@@ -1,5 +1,12 @@
 import * as React from "react";
-import { createContext, useContext, FC, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  FC,
+  useEffect,
+  useState,
+  useRef
+} from "react";
 import { Composite as MatterComposite, World } from "matter-js";
 import { useEngine } from "./Stage";
 
@@ -9,27 +16,31 @@ export const useComposite = () => useContext(CompositeContext);
 export interface CompositeProps {}
 
 export const Composite: FC<CompositeProps> = ({ children }) => {
-  const [composite, setComposite] = useState<MatterComposite>();
   const engine = useEngine();
+  const compositeRef = useRef<MatterComposite>();
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const current = MatterComposite.create();
-    World.add(engine.world, current);
-    setComposite(current);
+    if (engine != null) {
+      const current = MatterComposite.create({});
+      World.add(engine.world, current);
+      compositeRef.current = current;
+      setReady(true);
+    }
 
     return () => {
-      World.remove(engine.world, composite);
-      MatterComposite.clear(composite);
+      if (compositeRef.current != null) {
+        setReady(false);
+        World.remove(engine.world, compositeRef.current);
+        MatterComposite.clear(compositeRef.current);
+        compositeRef.current = null;
+      }
     };
-  }, []);
+  }, [compositeRef, engine]);
 
-  return (
-    <>
-      {composite && (
-        <CompositeContext.Provider value={composite}>
-          {children}
-        </CompositeContext.Provider>
-      )}
-    </>
-  );
+  return ready ? (
+    <CompositeContext.Provider value={compositeRef.current}>
+      {children}
+    </CompositeContext.Provider>
+  ) : null;
 };
