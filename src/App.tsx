@@ -2,7 +2,7 @@ import * as React from "react";
 import "./styles.css";
 import { useSize } from "./useSize";
 import { Stage } from "./Stage";
-import { Path, Cmd_m, Cmd_t } from "./Paths";
+import { Path, Mr, Tr } from "./Paths";
 import { Composite } from "./Body";
 
 export default function App() {
@@ -16,11 +16,11 @@ export default function App() {
       <rect width={size.width} height={size.height} fill="blue" />
       <Composite>
         <Path fill="red" strokeWidth="20">
-          <Cmd_m dx={100} dy={100} />
-          <Cmd_t dx={100} dy={0} />
-          <Cmd_t dx={0} dy={100} />
-          <Cmd_t dx={-100} dy={0} />
-          <Cmd_t dx={0} dy={-100} />
+          <Mr dx={100} dy={100} />
+          <Tr dx={100} dy={0} />
+          <Tr dx={0} dy={100} />
+          <Tr dx={-100} dy={0} />
+          <Tr dx={0} dy={-100} />
         </Path>
       </Composite>
     </Stage>

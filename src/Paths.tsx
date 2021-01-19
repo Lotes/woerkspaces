@@ -100,32 +100,32 @@ type Props =
   | AProps
   | aProps;
 
-export const Cmd_M: FC<XYProps> = () => <></>;
-export const Cmd_m: FC<DxDyProps> = () => <></>;
-export const Cmd_L: FC<XYProps> = () => <></>;
-export const Cmd_l: FC<DxDyProps> = () => <></>;
+export const M: FC<XYProps> = () => <></>;
+export const Mr: FC<DxDyProps> = () => <></>;
+export const L: FC<XYProps> = () => <></>;
+export const Lr: FC<DxDyProps> = () => <></>;
 
-export const Cmd_H: FC<XProps> = () => <></>;
-export const Cmd_h: FC<DxProps> = () => <></>;
-export const Cmd_V: FC<YProps> = () => <></>;
-export const Cmd_v: FC<DyProps> = () => <></>;
+export const H: FC<XProps> = () => <></>;
+export const Hr: FC<DxProps> = () => <></>;
+export const V: FC<YProps> = () => <></>;
+export const Vr: FC<DyProps> = () => <></>;
 
-export const Cmd_C: FC<CProps> = () => <></>;
-export const Cmd_c: FC<cProps> = () => <></>;
+export const C: FC<CProps> = () => <></>;
+export const Cr: FC<cProps> = () => <></>;
 
-export const Cmd_S: FC<SProps> = () => <></>;
-export const Cmd_s: FC<sProps> = () => <></>;
+export const S: FC<SProps> = () => <></>;
+export const Sr: FC<sProps> = () => <></>;
 
-export const Cmd_Q: FC<QProps> = () => <></>;
-export const Cmd_q: FC<qProps> = () => <></>;
+export const Q: FC<QProps> = () => <></>;
+export const Qr: FC<qProps> = () => <></>;
 
-export const Cmd_T: FC<XYProps> = () => <></>;
-export const Cmd_t: FC<DxDyProps> = () => <></>;
+export const T: FC<XYProps> = () => <></>;
+export const Tr: FC<DxDyProps> = () => <></>;
 
-export const Cmd_A: FC<AProps> = () => <></>;
-export const Cmd_a: FC<aProps> = () => <></>;
+export const A: FC<AProps> = () => <></>;
+export const Ar: FC<aProps> = () => <></>;
 
-export const Cmd_Z: FC<{}> = () => <></>;
+export const Z: FC<{}> = () => <></>;
 
 interface Component {
   type: Function;
@@ -190,103 +190,103 @@ export const Path: FC<PathProps> = ({
     React.Children.forEach(children, (child) => {
       const { type, props } = (child as unknown) as Component;
       switch (type) {
-        case Cmd_M: {
+        case M: {
           const { x, y } = props as XYProps;
           d.push(`M ${x} ${y}`);
           break;
         }
 
-        case Cmd_m: {
+        case Mr: {
           const { dx, dy } = props as DxDyProps;
           d.push(`m ${dx} ${dy}`);
           break;
         }
 
-        case Cmd_L: {
+        case L: {
           const { x, y } = props as XYProps;
           d.push(`L ${x} ${y}`);
           break;
         }
 
-        case Cmd_l: {
+        case Lr: {
           const { dx, dy } = props as DxDyProps;
           d.push(`l ${dx} ${dy}`);
           break;
         }
 
-        case Cmd_H: {
+        case H: {
           const { x } = props as XProps;
           d.push(`H ${x}`);
           break;
         }
 
-        case Cmd_h: {
+        case Hr: {
           const { dx } = props as DxProps;
           d.push(`h ${dx}`);
           break;
         }
 
-        case Cmd_V: {
+        case V: {
           const { y } = props as YProps;
           d.push(`V ${y}`);
           break;
         }
 
-        case Cmd_v: {
+        case Vr: {
           const { dy } = props as DyProps;
           d.push(`v ${dy}`);
           break;
         }
 
-        case Cmd_C: {
+        case C: {
           const { x1, y1, x2, y2, x, y } = props as CProps;
           d.push(`C ${x1} ${y1}, ${x2} ${y2}, ${x} ${y}`);
           break;
         }
 
-        case Cmd_c: {
+        case Cr: {
           const { dx1, dy1, dx2, dy2, dx, dy } = props as cProps;
           d.push(`c ${dx1} ${dy1}, ${dx2} ${dy2}, ${dx} ${dy}`);
           break;
         }
 
-        case Cmd_S: {
+        case S: {
           const { x2, y2, x, y } = props as SProps;
           d.push(`S ${x2} ${y2}, ${x} ${y}`);
           break;
         }
 
-        case Cmd_s: {
+        case Sr: {
           const { dx2, dy2, dx, dy } = props as sProps;
           d.push(`s ${dx2} ${dy2}, ${dx} ${dy}`);
           break;
         }
 
-        case Cmd_Q: {
+        case Q: {
           const { x1, y1, x, y } = props as QProps;
           d.push(`Q ${x1} ${y1}, ${x} ${y}`);
           break;
         }
 
-        case Cmd_q: {
+        case Qr: {
           const { dx1, dy1, dx, dy } = props as qProps;
           d.push(`q ${dx1} ${dy1}, ${dx} ${dy}`);
           break;
         }
 
-        case Cmd_T: {
+        case T: {
           const { x, y } = props as XYProps;
           d.push(`T ${x} ${y}`);
           break;
         }
 
-        case Cmd_t: {
+        case Tr: {
           const { dx, dy } = props as DxDyProps;
           d.push(`t ${dx} ${dy}`);
           break;
         }
 
-        case Cmd_A: {
+        case A: {
           const { rx, ry, rotation, largeArc, sweep, x, y } = props as AProps;
           d.push(
             `A ${rx} ${ry} ${rotation} ${largeArc ? "1" : "0"} ${
@@ -296,7 +296,7 @@ export const Path: FC<PathProps> = ({
           break;
         }
 
-        case Cmd_a: {
+        case Ar: {
           const { rx, ry, rotation, largeArc, sweep, dx, dy } = props as aProps;
           d.push(
             `A ${rx} ${ry} ${rotation} ${largeArc ? "1" : "0"} ${
@@ -306,7 +306,7 @@ export const Path: FC<PathProps> = ({
           break;
         }
 
-        case Cmd_Z: {
+        case Z: {
           d.push(`Z`);
           break;
         }
