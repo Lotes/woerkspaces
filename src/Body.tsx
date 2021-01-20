@@ -1,17 +1,7 @@
 import * as React from "react";
-import {
-  createContext,
-  useContext,
-  FC,
-  useEffect,
-  useState,
-  useRef
-} from "react";
+import { FC, useEffect, useState, useRef } from "react";
 import { Composite as MatterComposite, World } from "matter-js";
-import { useEngine } from "./Stage";
-
-export const CompositeContext = createContext<MatterComposite>(null);
-export const useComposite = () => useContext(CompositeContext);
+import { CompositeContext, useEngine } from "./Stage";
 
 export interface CompositeProps {}
 
