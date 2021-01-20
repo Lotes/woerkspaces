@@ -7,11 +7,14 @@ import {
   useState,
   useRef
 } from "react";
-import { Engine, IEngineDefinition, World } from "matter-js";
+import { Composite, Engine, IEngineDefinition, Render, World } from "matter-js";
 import { Size } from "./useSize";
 
 export const EngineContext = createContext<Engine>(null);
 export const useEngine = () => useContext(EngineContext);
+
+export const CompositeContext = createContext<Composite>(null);
+export const useComposite = () => useContext(CompositeContext);
 
 export type Listener = (dt: number) => void;
 
@@ -54,7 +57,7 @@ export const Stage: FC<StageProps> = ({
     const renderLoop = new RenderLoop();
     const engine = Engine.create({
       world: World.create({
-        gravity: { x: 0, y: 0.0001, scale: 1 }
+        gravity: { x: 0, y: 0.001, scale: 1 }
       })
     });
 
@@ -81,9 +84,11 @@ export const Stage: FC<StageProps> = ({
   return ready ? (
     <EngineContext.Provider value={engineRef.current!}>
       <RenderLoopContext.Provider value={renderLoopRef.current!}>
-        <svg width={width} height={height}>
-          {children}
-        </svg>
+        <CompositeContext.Provider value={engineRef.current!.world}>
+          <svg width={width} height={height}>
+            {children}
+          </svg>
+        </CompositeContext.Provider>
       </RenderLoopContext.Provider>
     </EngineContext.Provider>
   ) : null;

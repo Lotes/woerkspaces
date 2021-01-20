@@ -1,9 +1,15 @@
 import "pathseg";
-import { Bodies, Composite, Svg, Body } from "matter-js";
+import {
+  Bodies,
+  Composite,
+  Svg,
+  Body,
+  IBodyDefinition,
+  Vertices
+} from "matter-js";
 import * as React from "react";
 import { FC, useEffect, useState, useCallback, useRef } from "react";
-import { useComposite } from "./Body";
-import { useRenderLoop } from "./Stage";
+import { useComposite, useRenderLoop } from "./Stage";
 
 export interface XProps {
   x: number;
@@ -136,6 +142,7 @@ export interface PathProps {
   fill?: string;
   stroke?: string;
   strokeWidth?: string;
+  static?: boolean;
 }
 
 export interface Transform {
@@ -154,7 +161,8 @@ export const Path: FC<PathProps> = ({
   children,
   fill = "transparent",
   stroke = "black",
-  strokeWidth = "1px"
+  strokeWidth = "1px",
+  static: isStatic = false
 }) => {
   const composite = useComposite();
   const bodyRef = useRef<Body>();
@@ -330,25 +338,26 @@ export const Path: FC<PathProps> = ({
       Composite.remove(composite, bodyRef.current);
     }
     const vertices = Svg.pathToVertices(path, 15);
-    const body = Bodies.fromVertices(0, 0, [vertices], {
-      mass: 1,
-      position: {
-        x: transform.x,
-        y: transform.y
-      },
-      angle: transform.angle
-    });
+    const options: IBodyDefinition = {};
+    if (isStatic) {
+      options.isStatic = true;
+    } else {
+    }
+    const center = Vertices.centre(vertices);
+    const body = Bodies.fromVertices(0, 0, [vertices], options);
     Composite.add(composite, body);
     bodyRef.current = body;
+    Body.translate(body, center);
     setState({
       data: joined,
       origin: {
-        ...body.position,
+        x: body.position.x,
+        y: body.position.y,
         angle: body.angle
       },
       ready: true
     });
-  }, [children, bodyRef, composite]);
+  }, [children, bodyRef, composite, isStatic]);
 
   useEffect(() => {
     renderLoop.addListener(render);
@@ -365,7 +374,19 @@ export const Path: FC<PathProps> = ({
   const y = transform.y - state.origin.y;
   const angle = transform.angle - state.origin.angle;
   return (
-    <g transform={"translate(" + x + " " + y + ") rotate(" + angle + ")"}>
+    <g
+      transform={
+        "rotate(" +
+        ((0 * 180) / Math.PI) * angle +
+        ") translate(" +
+        x +
+        " " +
+        y +
+        ") rotate(" +
+        (180 / Math.PI) * angle +
+        ")"
+      }
+    >
       <path
         d={state.data}
         strokeWidth={strokeWidth}
