@@ -325,17 +325,7 @@ export const Path: FC<PathProps> = ({
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", joined);
 
-    let transform: Transform = {
-      x: 0,
-      y: 0,
-      angle: 0
-    };
     if (bodyRef.current) {
-      transform = {
-        x: bodyRef.current.position.x,
-        y: bodyRef.current.position.y,
-        angle: bodyRef.current.angle
-      };
       Composite.remove(composite, bodyRef.current);
     }
     const vertices = Svg.pathToVertices(path, 15);

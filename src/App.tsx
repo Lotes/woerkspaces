@@ -2,7 +2,7 @@ import * as React from "react";
 import "./styles.css";
 import { useSize } from "./useSize";
 import { Stage } from "./Stage";
-import { Path, M, Mr, Lr, Z, Hr, Vr } from "./Paths";
+import { Path, Mr, Lr, Z, Hr, Vr } from "./Paths";
 
 export default function App() {
   const size = useSize(() => ({
