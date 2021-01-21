@@ -21,7 +21,7 @@ export default function App() {
         <Z />
       </Path>
       <Path static fill="green" strokeWidth="1">
-        <Mr dx={0} dy={size.height - 40} />
+        <Mr dx={0} dy={size.height} />
         <Hr dx={size.width} />
         <Vr dy={40} />
         <Hr dx={-size.width} />
@@ -30,19 +30,19 @@ export default function App() {
       <Path static fill="green" strokeWidth="1">
         <Mr dx={0} dy={0} />
         <Hr dx={size.width} />
-        <Vr dy={40} />
+        <Vr dy={-40} />
         <Hr dx={-size.width} />
         <Z />
       </Path>
       <Path static fill="green" strokeWidth="1">
-        <Mr dx={0} dy={0} />
+        <Mr dx={-40} dy={0} />
         <Hr dx={40} />
         <Vr dy={size.height} />
         <Hr dx={-40} />
         <Z />
       </Path>
       <Path static fill="green" strokeWidth="1">
-        <Mr dx={size.width - 40} dy={0} />
+        <Mr dx={size.width} dy={0} />
         <Hr dx={40} />
         <Vr dy={size.height} />
         <Hr dx={-40} />

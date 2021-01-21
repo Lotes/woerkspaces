@@ -1,4 +1,5 @@
 import "pathseg";
+import "poly-decomp";
 import {
   Bodies,
   Composite,
@@ -341,13 +342,13 @@ export const Path: FC<PathProps> = ({
     const options: IBodyDefinition = {};
     if (isStatic) {
       options.isStatic = true;
-    } else {
     }
     const center = Vertices.centre(vertices);
     const body = Bodies.fromVertices(0, 0, [vertices], options);
+
     Composite.add(composite, body);
     bodyRef.current = body;
-    Body.translate(body, center);
+    Body.setPosition(body, center);
     setState({
       data: joined,
       origin: {
@@ -370,22 +371,14 @@ export const Path: FC<PathProps> = ({
   if (!state.ready) {
     return null;
   }
-  const x = transform.x - state.origin.x;
-  const y = transform.y - state.origin.y;
-  const angle = transform.angle - state.origin.angle;
+  const x = transform.x;
+  const y = transform.y;
+  const r2d = 180 / Math.PI;
+  const angle = transform.angle * r2d;
   return (
     <g
-      transform={
-        "rotate(" +
-        ((0 * 180) / Math.PI) * angle +
-        ") translate(" +
-        x +
-        " " +
-        y +
-        ") rotate(" +
-        (180 / Math.PI) * angle +
-        ")"
-      }
+      transform={`translate(${x} ${y}) rotate(${angle}) translate(${-state
+        .origin.x} ${-state.origin.y})`}
     >
       <path
         d={state.data}
