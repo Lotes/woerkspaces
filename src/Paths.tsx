@@ -1,16 +1,9 @@
 import "pathseg";
 import "poly-decomp";
-import {
-  Bodies,
-  Composite,
-  Svg,
-  Body,
-  IBodyDefinition,
-  Vertices
-} from "matter-js";
+import { Svg, Vector } from "matter-js";
 import * as React from "react";
-import { FC, useEffect, useState, useCallback, useRef } from "react";
-import { useComposite, useRenderLoop } from "./Stage";
+import { FC, useEffect, useState } from "react";
+import { Body, BodyTransform } from "./Body";
 
 export interface XProps {
   x: number;
@@ -144,18 +137,17 @@ export interface PathProps {
   stroke?: string;
   strokeWidth?: string;
   static?: boolean;
-}
-
-export interface Transform {
-  x: number;
-  y: number;
-  angle: number;
+  x?: number;
+  y?: number;
+  vx?: number;
+  vy?: number;
+  angle?: number;
+  onPositionChanged?: (transform: BodyTransform) => void;
 }
 
 export interface PathState {
-  data: string;
-  origin: Transform;
-  ready: boolean;
+  pathData: string;
+  vertices: Vector[];
 }
 
 export const Path: FC<PathProps> = ({
@@ -163,36 +155,21 @@ export const Path: FC<PathProps> = ({
   fill = "transparent",
   stroke = "black",
   strokeWidth = "1px",
-  static: isStatic = false
+  static: isStatic = false,
+  x = 0,
+  y = 0,
+  angle = 0,
+  vx = 0,
+  vy = 0
 }) => {
-  const composite = useComposite();
-  const bodyRef = useRef<Body>();
-  const [state, setState] = useState<PathState>(() => {
-    return {
-      data: "z",
-      origin: {
-        x: 0,
-        y: 0,
-        angle: 0
-      },
-      ready: false
-    };
-  });
-  const renderLoop = useRenderLoop();
-  const [transform, setTransform] = useState<Transform>(() => ({
-    x: 0,
-    y: 0,
-    angle: 0
+  const [position, setPosition] = useState<BodyTransform>(() => ({
+    x,
+    y,
+    angle,
+    vx,
+    vy
   }));
-  const render = useCallback(() => {
-    return (
-      bodyRef.current &&
-      setTransform({
-        ...bodyRef.current.position,
-        angle: bodyRef.current.angle
-      })
-    );
-  }, [bodyRef]);
+  const [state, setState] = useState<PathState | null>(null);
 
   useEffect(() => {
     let d: string[] = [];
@@ -325,57 +302,27 @@ export const Path: FC<PathProps> = ({
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", joined);
 
-    if (bodyRef.current) {
-      Composite.remove(composite, bodyRef.current);
-    }
-    const vertices = Svg.pathToVertices(path, 15);
-    const options: IBodyDefinition = {};
-    if (isStatic) {
-      options.isStatic = true;
-    }
-    const center = Vertices.centre(vertices);
-    const body = Bodies.fromVertices(0, 0, [vertices], options);
+    const pathAsVertices = Svg.pathToVertices(path, 15);
+    setState({ vertices: pathAsVertices, pathData: joined });
+  }, [children, isStatic]);
 
-    Composite.add(composite, body);
-    bodyRef.current = body;
-    Body.setPosition(body, center);
-    setState({
-      data: joined,
-      origin: {
-        x: body.position.x,
-        y: body.position.y,
-        angle: body.angle
-      },
-      ready: true
-    });
-  }, [children, bodyRef, composite, isStatic]);
-
-  useEffect(() => {
-    renderLoop.addListener(render);
-
-    return () => {
-      renderLoop.removeListener(render);
-    };
-  }, [renderLoop, render]);
-
-  if (!state.ready) {
+  if (state == null) {
     return null;
   }
-  const x = transform.x;
-  const y = transform.y;
-  const r2d = 180 / Math.PI;
-  const angle = transform.angle * r2d;
   return (
-    <g
-      transform={`translate(${x} ${y}) rotate(${angle}) translate(${-state
-        .origin.x} ${-state.origin.y})`}
+    <Body
+      {...position}
+      vertices={state.vertices}
+      static={isStatic}
+      mass={5}
+      // onPositionChange={setPosition}
     >
       <path
-        d={state.data}
+        d={state.pathData}
         strokeWidth={strokeWidth}
         stroke={stroke}
         fill={fill}
       />
-    </g>
+    </Body>
   );
 };

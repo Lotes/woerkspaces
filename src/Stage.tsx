@@ -7,13 +7,14 @@ import {
   useState,
   useRef
 } from "react";
-import { Composite, Engine, IEngineDefinition, Render, World } from "matter-js";
+import { Engine, IEngineDefinition, World } from "matter-js";
 import { Size } from "./useSize";
+import { Composite as MatterComposite } from "matter-js";
 
 export const EngineContext = createContext<Engine>(null);
 export const useEngine = () => useContext(EngineContext);
 
-export const CompositeContext = createContext<Composite>(null);
+export const CompositeContext = createContext<MatterComposite>(null);
 export const useComposite = () => useContext(CompositeContext);
 
 export type Listener = (dt: number) => void;
@@ -91,5 +92,37 @@ export const Stage: FC<StageProps> = ({
         </CompositeContext.Provider>
       </RenderLoopContext.Provider>
     </EngineContext.Provider>
+  ) : null;
+};
+
+export interface CompositeProps {}
+
+export const Composite: FC<CompositeProps> = ({ children }) => {
+  const engine = useEngine();
+  const compositeRef = useRef<MatterComposite>();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (engine != null) {
+      const current = MatterComposite.create({});
+      World.add(engine.world, current);
+      compositeRef.current = current;
+      setReady(true);
+    }
+
+    return () => {
+      if (compositeRef.current != null) {
+        setReady(false);
+        World.remove(engine.world, compositeRef.current);
+        MatterComposite.clear(compositeRef.current);
+        compositeRef.current = null;
+      }
+    };
+  }, [compositeRef, engine]);
+
+  return ready ? (
+    <CompositeContext.Provider value={compositeRef.current}>
+      {children}
+    </CompositeContext.Provider>
   ) : null;
 };

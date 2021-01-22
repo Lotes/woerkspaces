@@ -14,7 +14,7 @@ export default function App() {
     <Stage width={size.width} height={size.height}>
       <rect width={size.width} height={size.height} fill="blue" />
       <Path fill="red" strokeWidth="1">
-        <Mr dx={100} dy={100} />
+        <Mr dx={10} dy={10} />
         <Lr dx={0} dy={100} />
         <Lr dx={100} dy={-100} />
         <Lr dx={0} dy={-10} />
