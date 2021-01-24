@@ -19,24 +19,37 @@ export const useComposite = () => useContext(CompositeContext);
 
 export type Listener = (dt: number) => void;
 
+export enum RenderEvent {
+  BeforeRender = "before",
+  AfterRender = "after"
+}
+
 export interface IRenderLoop {
-  addListener(listener: Listener): void;
-  removeListener(listener: Listener): void;
+  addListener(event: RenderEvent, listener: Listener): void;
+  removeListener(event: RenderEvent, listener: Listener): void;
 }
 
 export const RenderLoopContext = createContext<RenderLoop | null>(null);
 export const useRenderLoop = () => useContext(RenderLoopContext);
 
+interface RenderListenerMap {
+  [name: RenderEvent]: Listener[]
+}
+
 export class RenderLoop implements IRenderLoop {
-  private listeners: Listener[] = [];
-  addListener(listener: Listener) {
-    this.listeners.push(listener);
+  private listeners: RenderListenerMap = {};
+  constructor(){
+    this.listeners[RenderEvent.AfterRender] =[]
+    this.listeners[RenderEvent.BeforeRender] =[]
   }
-  removeListener(listener: Listener) {
-    this.listeners = this.listeners.filter((i) => i !== listener);
+  addListener(event: RenderEvent, listener: Listener) {
+    this.listeners[event].push(listener);
   }
-  run(time: number) {
-    this.listeners.forEach((ls) => ls(time));
+  removeListener(event: RenderEvent, listener: Listener) {
+    this.listeners[event] = this.listeners[event].filter((i) => i !== listener);
+  }
+  run(event: RenderEvent, time: number) {
+    this.listeners[event].forEach((ls) => ls(time));
   }
 }
 
@@ -68,8 +81,9 @@ export const Stage: FC<StageProps> = ({
 
     (function animate(time: number) {
       requestAnimationFrame(animate);
+      renderLoop.run(RenderEvent.BeforeRender, 0);
       Engine.update(engine, 1000 / 60);
-      renderLoop.run(time);
+      renderLoop.run(RenderEvent.AfterRender, time);
     })(0);
 
     return () => {
