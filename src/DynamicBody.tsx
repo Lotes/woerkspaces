@@ -108,6 +108,7 @@ export const Body: FC<BodyProps> = ({
     const options: IBodyDefinition = {
       mass
     };
+    const vertices = JSON.parse(json);
     const center = Vertices.centre(vertices);
     const body = Bodies.fromVertices(center.x, center.y, [vertices], options);
     if (tempPosition) setBodyTransform(body, tempPosition);

@@ -15,10 +15,10 @@ export default function App() {
   const [position, setPosition] = React.useState<BodyTransform>(() => ({
     x: 100,
     y: 100,
-    vx: 0,
+    vx: 10,
     vy: 0,
     angle: 0,
-    angularVelocity:0
+    angularVelocity: 0
   }));
 
   return (
@@ -27,7 +27,8 @@ export default function App() {
       <Path
         position={position}
         fill="red"
-        strokeWidth="1"
+        strokeWidth="2"
+        stroke="black"
         onPositionChanged={setPosition}
       >
         <Mr dx={100} dy={100} />
