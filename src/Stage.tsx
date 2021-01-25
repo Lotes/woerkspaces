@@ -33,14 +33,14 @@ export const RenderLoopContext = createContext<RenderLoop | null>(null);
 export const useRenderLoop = () => useContext(RenderLoopContext);
 
 interface RenderListenerMap {
-  [name: RenderEvent]: Listener[]
+  [name: RenderEvent]: Listener[];
 }
 
 export class RenderLoop implements IRenderLoop {
   private listeners: RenderListenerMap = {};
-  constructor(){
-    this.listeners[RenderEvent.AfterRender] =[]
-    this.listeners[RenderEvent.BeforeRender] =[]
+  constructor() {
+    this.listeners[RenderEvent.AfterRender] = [];
+    this.listeners[RenderEvent.BeforeRender] = [];
   }
   addListener(event: RenderEvent, listener: Listener) {
     this.listeners[event].push(listener);
@@ -71,7 +71,7 @@ export const Stage: FC<StageProps> = ({
     const renderLoop = new RenderLoop();
     const engine = Engine.create({
       world: World.create({
-        gravity: { x: 0, y: 0.001, scale: 1 }
+        gravity: { x: 0, y:0.01, scale: 1 }
       })
     });
 
@@ -79,11 +79,11 @@ export const Stage: FC<StageProps> = ({
     engineRef.current = engine;
     setReady(true);
 
-    (function animate(time: number) {
-      requestAnimationFrame(animate);
+    (function animate() {
       renderLoop.run(RenderEvent.BeforeRender, 0);
       Engine.update(engine, 1000 / 60);
-      renderLoop.run(RenderEvent.AfterRender, time);
+      renderLoop.run(RenderEvent.AfterRender, 0);
+      requestAnimationFrame(animate);
     })(0);
 
     return () => {

@@ -136,7 +136,7 @@ export interface PathState {
   vertices: Vector[];
 }
 
-export function getSvgPath(children?: React.ReactNode) {
+export function getSvgPath(children?: React.ReactNode): [Vector[], string] {
   let d: string[] = [];
   React.Children.forEach(children, (child) => {
     const { type, props } = (child as unknown) as Component;

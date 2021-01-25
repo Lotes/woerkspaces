@@ -17,7 +17,8 @@ export default function App() {
     y: 100,
     vx: 0,
     vy: 0,
-    angle: 0
+    angle: 0,
+    angularVelocity:0
   }));
 
   return (
@@ -36,14 +37,14 @@ export default function App() {
         <Z />
       </Path>
       <Static fill="green" strokeWidth="1">
-        <Mr dx={0} dy={size.height - 40} />
+        <Mr dx={0} dy={size.height} />
         <Hr dx={size.width} />
         <Vr dy={40} />
         <Hr dx={-size.width} />
         <Z />
       </Static>
       <Static fill="green" strokeWidth="1">
-        <Mr dx={0} dy={40} />
+        <Mr dx={0} dy={0} />
         <Hr dx={size.width} />
         <Vr dy={-40} />
         <Hr dx={-size.width} />

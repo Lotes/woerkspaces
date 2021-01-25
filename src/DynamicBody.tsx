@@ -33,7 +33,7 @@ export interface BodyProps extends StaticBodyProps {
   mass: number;
 }
 
-function body2Transform(body: MatterBody): BodyTransform {
+function getBodyTransform(body: MatterBody): BodyTransform {
   return {
     x: body.position.x,
     y: body.position.y,
@@ -69,6 +69,7 @@ export const Body: FC<BodyProps> = ({
   mass,
   onPositionChanged
 }) => {
+  const json = JSON.stringify(vertices);
   const composite = useComposite();
   const bodyRef = useRef<MatterBody>();
 
@@ -91,22 +92,17 @@ export const Body: FC<BodyProps> = ({
   const render = useCallback(() => {
     const current = bodyRef.current;
     if (current != null) {
-      const message = body2Transform(current);
-      if (!areEqual(message, position) && onPositionChanged) {
+      const message = getBodyTransform(current);
+      if (!areEqual(message, position)) {
         onPositionChanged(message);
       }
     }
   }, [bodyRef, onPositionChanged, position]);
 
   useEffect(() => {
-    if (bodyRef.current == null) {
-      return;
-    }
-    setBodyTransform(bodyRef.current, position);
-  }, [bodyRef, position]);
-
-  useEffect(() => {
+    let tempPosition: BodyTransform | null = null;
     if (bodyRef.current) {
+      tempPosition = getBodyTransform(bodyRef.current);
       Composite.remove(composite, bodyRef.current);
     }
     const options: IBodyDefinition = {
@@ -114,6 +110,7 @@ export const Body: FC<BodyProps> = ({
     };
     const center = Vertices.centre(vertices);
     const body = Bodies.fromVertices(center.x, center.y, [vertices], options);
+    if (tempPosition) setBodyTransform(body, tempPosition);
     Composite.add(composite, body);
     bodyRef.current = body;
     setState({
@@ -121,7 +118,7 @@ export const Body: FC<BodyProps> = ({
       cy: center.y,
       ready: true
     });
-  }, [bodyRef, composite, vertices, mass, position]);
+  }, [bodyRef, composite, mass, json]);
 
   useEffect(() => {
     renderLoop.addListener(RenderEvent.BeforeRender, b4render);
