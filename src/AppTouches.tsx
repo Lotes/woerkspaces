@@ -134,7 +134,6 @@ export default function App() {
           </g>
         );
       })}
-      <text x="20" y="20"></text>
     </svg>
   );
 }
