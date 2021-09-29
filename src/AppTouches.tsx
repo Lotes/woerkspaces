@@ -22,11 +22,30 @@ export enum ActionType {
   Remove
 }
 
-export interface Action {
+export interface ActionBase {
   type: ActionType;
-  id?: string;
+  id: string;
   point?: TouchPoint;
 }
+
+export interface ActionAdd extends ActionBase {
+  type: ActionType.Add;
+  id: string;
+  point: TouchPoint;
+}
+
+export interface ActionChange extends ActionBase {
+  type: ActionType.Change;
+  id: string;
+  point: TouchPoint;
+}
+
+export interface ActionRemove extends ActionBase {
+  type: ActionType.Remove;
+  id: string;
+}
+
+export type Action = ActionAdd | ActionChange | ActionRemove;
 
 function reduce(state: State, action: Action): State {
   switch (action.type) {
@@ -95,7 +114,7 @@ export default function App() {
           const touch = t.changedTouches.item(index);
           dispatch({
             type: ActionType.Remove,
-            id: touch.identifier.toString()
+            id: touch.identifier.toString(),
           });
         }
       }}

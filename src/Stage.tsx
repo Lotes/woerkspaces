@@ -11,10 +11,10 @@ import { Engine, IEngineDefinition, World } from "matter-js";
 import { Size } from "./useSize";
 import { Composite as MatterComposite } from "matter-js";
 
-export const EngineContext = createContext<Engine>(null);
+export const EngineContext = createContext<Engine>(Engine.create({}));
 export const useEngine = () => useContext(EngineContext);
 
-export const CompositeContext = createContext<MatterComposite>(null);
+export const CompositeContext = createContext<MatterComposite>(MatterComposite.create({}));
 export const useComposite = () => useContext(CompositeContext);
 
 export type Listener = (dt: number) => void;
@@ -29,11 +29,8 @@ export interface IRenderLoop {
   removeListener(event: RenderEvent, listener: Listener): void;
 }
 
-export const RenderLoopContext = createContext<RenderLoop | null>(null);
-export const useRenderLoop = () => useContext(RenderLoopContext);
-
 interface RenderListenerMap {
-  [name: RenderEvent]: Listener[];
+  [name: string]: Listener[];
 }
 
 export class RenderLoop implements IRenderLoop {
@@ -52,6 +49,9 @@ export class RenderLoop implements IRenderLoop {
     this.listeners[event].forEach((ls) => ls(time));
   }
 }
+
+export const RenderLoopContext = createContext<RenderLoop>(new RenderLoop());
+export const useRenderLoop = () => useContext(RenderLoopContext);
 
 export interface StageProps extends Size {
   engineOptions?: IEngineDefinition;
@@ -84,14 +84,12 @@ export const Stage: FC<StageProps> = ({
       Engine.update(engine, 1000 / 60);
       renderLoop.run(RenderEvent.AfterRender, 0);
       requestAnimationFrame(animate);
-    })(0);
+    })();
 
     return () => {
       setReady(false);
       if (engineRef.current != null) {
         Engine.clear(engineRef.current!);
-        renderLoopRef.current = null;
-        engineRef.current = null;
       }
     };
   }, [engineOptions, renderLoopRef, engineRef]);
@@ -128,14 +126,13 @@ export const Composite: FC<CompositeProps> = ({ children }) => {
       if (compositeRef.current != null) {
         setReady(false);
         World.remove(engine.world, compositeRef.current);
-        MatterComposite.clear(compositeRef.current);
-        compositeRef.current = null;
+        MatterComposite.clear(compositeRef.current, false);
       }
     };
   }, [compositeRef, engine]);
 
   return ready ? (
-    <CompositeContext.Provider value={compositeRef.current}>
+    <CompositeContext.Provider value={compositeRef.current!}>
       {children}
     </CompositeContext.Provider>
   ) : null;
