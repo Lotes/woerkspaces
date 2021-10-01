@@ -10,6 +10,8 @@ import {
 import { Engine, IEngineDefinition, World } from "matter-js";
 import { Size } from "./useSize";
 import { Composite as MatterComposite } from "matter-js";
+import TouchablePane from "./TouchablePane";
+import { MultiTouchConstraint } from "./MultiTouchConstraint";
 
 export const EngineContext = createContext<Engine>(Engine.create({}));
 export const useEngine = () => useContext(EngineContext);
@@ -65,22 +67,26 @@ export const Stage: FC<StageProps> = ({
 }) => {
   const renderLoopRef = useRef<RenderLoop>();
   const engineRef = useRef<Engine>();
+  const multiTouchConstraintRef = useRef<MultiTouchConstraint>();
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const renderLoop = new RenderLoop();
     const engine = Engine.create({
       world: World.create({
-        gravity: { x: 0, y:0.01, scale: 1 }
+        gravity: { x: 0, y:0.001, scale: 1 }
       })
     });
+    const multiTouchConstraint  = new MultiTouchConstraint(engine);
 
     renderLoopRef.current = renderLoop;
     engineRef.current = engine;
+    multiTouchConstraintRef.current = multiTouchConstraint;
     setReady(true);
 
     (function animate() {
       renderLoop.run(RenderEvent.BeforeRender, 0);
+      multiTouchConstraintRef.current!.refresh();
       Engine.update(engine, 1000 / 60);
       renderLoop.run(RenderEvent.AfterRender, 0);
       requestAnimationFrame(animate);
@@ -98,9 +104,14 @@ export const Stage: FC<StageProps> = ({
     <EngineContext.Provider value={engineRef.current!}>
       <RenderLoopContext.Provider value={renderLoopRef.current!}>
         <CompositeContext.Provider value={engineRef.current!.world}>
-          <svg width={width} height={height}>
+          <TouchablePane 
+            onAddTouch={(id, touch) => multiTouchConstraintRef.current!.add(id, touch)}
+            onRemoveTouch={(id) => multiTouchConstraintRef.current!.remove(id)}
+            onUpdateTouch={(id, touch) => multiTouchConstraintRef.current!.update(id, touch)}
+            width={width} 
+            height={height}>
             {children}
-          </svg>
+          </TouchablePane>
         </CompositeContext.Provider>
       </RenderLoopContext.Provider>
     </EngineContext.Provider>
